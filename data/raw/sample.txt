@@ -1,0 +1,7 @@
+Artificial Intelligence (AI) is transforming industries across the globe. From healthcare to finance, AI systems are being used to automate processes, analyze large datasets, and improve decision-making.
+
+Generative AI is a subset of AI that focuses on creating new content such as text, images, audio, and code. Large Language Models (LLMs) like GPT-style models are trained on massive datasets and can generate human-like responses.
+
+Retrieval-Augmented Generation (RAG) improves the reliability of generative models by combining information retrieval with text generation. Instead of relying only on pre-trained knowledge, the system retrieves relevant documents and uses them to generate grounded responses.
+
+As AI systems become more advanced, designing scalable and modular architectures becomes essential. Proper separation of ingestion, retrieval, and generation layers ensures maintainability and performance in production systems.

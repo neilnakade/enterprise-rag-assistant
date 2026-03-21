@@ -1,0 +1,18 @@
+Company: TechNova Solutions
+
+IT Support Guide:
+
+1. System Issues:
+Restart your system and check network connection first.
+
+2. Software Installation:
+Raise a request through the IT support portal.
+
+3. Laptop Issues:
+Report hardware issues to IT immediately.
+
+4. Email Not Working:
+Check internet connection and email server status.
+
+5. IT Support Contact:
+Email: it-support@technova.com
