@@ -8,8 +8,9 @@ def generate_answer(query):
     context = "\n".join([doc.page_content for doc, score in results])
 
     llm = HuggingFaceHub(
-        repo_id="google/flan-t5-large",
-        model_kwargs={"temperature": 0.2, "max_length": 512}
+    repo_id="google/flan-t5-large",
+    huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
+    model_kwargs={"temperature": 0.2, "max_length": 512}
     )
 
     prompt = f"""
