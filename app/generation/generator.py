@@ -1,4 +1,4 @@
-from langchain_ollama import OllamaLLM
+from langchain_community.llms import HuggingFaceHub
 from app.retrieval.retriever import retrieve_documents
 
 chat_history = []
@@ -54,9 +54,9 @@ Question:
 Answer:
 """
 
-    llm = OllamaLLM(
-        model="mistral",
-        temperature=0.2
+    llm = HuggingFaceHub(
+    repo_id="google/flan-t5-large",
+    model_kwargs={"temperature": 0.2, "max_length": 512}
     )
 
     response = llm.invoke(prompt)
