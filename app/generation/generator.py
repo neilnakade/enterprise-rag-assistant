@@ -1,5 +1,6 @@
 from langchain_community.llms import HuggingFaceHub
 from app.retrieval.retriever import retrieve_documents
+import os
 
 def generate_answer(query):
     results = retrieve_documents(query, k=3)
@@ -12,7 +13,7 @@ def generate_answer(query):
     )
 
     prompt = f"""
-    Answer the question based ONLY on the context below.
+    Answer ONLY from the context below.
 
     Context:
     {context}
