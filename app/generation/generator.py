@@ -2,7 +2,7 @@ import os
 import requests
 from app.retrieval.retriever import retrieve_documents
 
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+API_URL = API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
 
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('HUGGINGFACEHUB_API_TOKEN')}"
