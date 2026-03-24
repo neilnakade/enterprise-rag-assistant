@@ -1,17 +1,21 @@
-from langchain_community.llms import HuggingFaceHub
-from app.retrieval.retriever import retrieve_documents
 import os
+import requests
+from app.retrieval.retriever import retrieve_documents
+
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+
+HEADERS = {
+    "Authorization": f"Bearer {os.getenv('HUGGINGFACEHUB_API_TOKEN')}"
+}
+
+def query_hf(payload):
+    response = requests.post(API_URL, headers=HEADERS, json=payload)
+    return response.json()
 
 def generate_answer(query):
     results = retrieve_documents(query, k=3)
 
     context = "\n".join([doc.page_content for doc, score in results])
-
-    llm = HuggingFaceHub(
-    repo_id="google/flan-t5-large",
-    huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
-    model_kwargs={"temperature": 0.2, "max_length": 512}
-    )
 
     prompt = f"""
     Answer ONLY from the context below.
@@ -23,7 +27,12 @@ def generate_answer(query):
     {query}
     """
 
-    answer = llm(prompt)
+    response = query_hf({"inputs": prompt})
+
+    try:
+        answer = response[0]["generated_text"]
+    except:
+        answer = "Error generating response. Try again."
 
     sources = list(set([doc.metadata.get("source", "") for doc, _ in results]))
 
