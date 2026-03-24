@@ -18,24 +18,23 @@ def generate_answer(query):
     context = "\n".join([doc.page_content for doc, score in results])
 
     prompt = f"""
-    Answer ONLY from the context below.
+Answer ONLY from the context below.
 
-    Context:
-    {context}
+Context:
+{context}
 
-    Question:
-    {query}
-    """
+Question:
+{query}
+"""
 
     response = query_hf({"inputs": prompt})
 
-# Debug-safe handling
-if  isinstance(response, list) and "generated_text" in response[0]:
-    answer = response[0]["generated_text"]
-elif isinstance(response, dict) and "error" in response:
-    answer = f"API Error: {response['error']}"
-else:
-    answer = "Model is loading or rate limited. Please try again in a few seconds."
+    if isinstance(response, list) and "generated_text" in response[0]:
+        answer = response[0]["generated_text"]
+    elif isinstance(response, dict) and "error" in response:
+        answer = f"API Error: {response['error']}"
+    else:
+        answer = "Model is loading or rate limited. Try again."
 
     sources = list(set([doc.metadata.get("source", "") for doc, _ in results]))
 
