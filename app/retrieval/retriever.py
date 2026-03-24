@@ -1,19 +1,31 @@
-from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from app.ingestion.loader import load_documents
-from app.ingestion.splitter import split_documents
+from langchain_community.vectorstores import FAISS
+from langchain.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import os
 
 def retrieve_documents(query, k=3):
+    docs = []
+
+    # Load all files
+    for file in os.listdir("data/raw"):
+        loader = TextLoader(os.path.join("data/raw", file))
+        docs.extend(loader.load())
+
+    # Split
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+    chunks = splitter.split_documents(docs)
+
+    # Embeddings
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    # 🔥 Create vector DB dynamically
-    documents = load_documents("data/raw")
-    chunks = split_documents(documents)
-
+    # Vector store (dynamic)
     vector_store = FAISS.from_documents(chunks, embeddings)
 
-    results = vector_store.similarity_search_with_score(query, k=k)
-    return results
+    return vector_store.similarity_search_with_score(query, k=k)
     
