@@ -1,29 +1,34 @@
 import os
 import requests
+import time
 from app.retrieval.retriever import retrieve_documents
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
 
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('HUGGINGFACEHUB_API_TOKEN')}"
 }
 
 def query_hf(payload):
-    try:
-        response = requests.post(API_URL, headers=HEADERS, json=payload)
-
-        # Handle non-200 responses
-        if response.status_code != 200:
-            return {"error": f"HTTP {response.status_code}: {response.text}"}
-
-        # Try parsing JSON
+    for _ in range(3):  # retry 3 times
         try:
-            return response.json()
-        except:
-            return {"error": "Invalid JSON response from API"}
+            response = requests.post(API_URL, headers=HEADERS, json=payload)
 
-    except Exception as e:
-        return {"error": str(e)}
+            # If API fails, retry
+            if response.status_code != 200:
+                time.sleep(2)
+                continue
+
+            try:
+                return response.json()
+            except:
+                time.sleep(2)
+                continue
+
+        except:
+            time.sleep(2)
+
+    return {"error": "Model unavailable after retries"}
 
 
 def generate_answer(query):
@@ -44,17 +49,17 @@ Question:
 
     response = query_hf({"inputs": prompt})
 
-    # Handle different API responses
+    # Handle response
     if isinstance(response, list) and "generated_text" in response[0]:
         answer = response[0]["generated_text"]
 
     elif isinstance(response, dict) and "error" in response:
-        answer = "⚠️ Model is busy or loading. Please try again in a few seconds."
+        answer = "⏳ Loading model... please retry once."
 
     else:
         answer = "⚠️ Unexpected response. Try again."
 
-    # Show only top source (clean UI)
+    # Show only top source
     sources = [results[0][0].metadata.get("source", "")] if results else []
 
     return f"{answer}\n\nSources:\n" + "\n".join(sources)
