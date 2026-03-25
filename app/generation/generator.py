@@ -2,11 +2,15 @@ import os
 from groq import Groq
 from app.retrieval.retriever import retrieve_documents
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
 
 def generate_answer(query):
-    results = retrieve_documents(query, k=3)
+    if not api_key:
+        return "❌ API key not found. Check Streamlit secrets."
 
+    client = Groq(api_key=api_key)
+
+    results = retrieve_documents(query, k=3)
     context = "\n".join([doc.page_content for doc, score in results])
 
     prompt = f"""
@@ -28,7 +32,7 @@ Question:
         answer = response.choices[0].message.content
 
     except Exception as e:
-        answer = "⚠️ Error generating response. Please try again."
+        return f"❌ ERROR: {str(e)}"
 
     sources = [results[0][0].metadata.get("source", "")] if results else []
 
