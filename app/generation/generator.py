@@ -1,40 +1,12 @@
 import os
-import requests
-import time
+from groq import Groq
 from app.retrieval.retriever import retrieve_documents
 
-API_URL = API_URL = "https://router.huggingface.co/hf-inference/models/distilgpt2"
-
-HEADERS = {
-    "Authorization": f"Bearer {os.getenv('HUGGINGFACEHUB_API_TOKEN')}"
-}
-
-def query_hf(payload):
-    for _ in range(3):  # retry 3 times
-        try:
-            response = requests.post(API_URL, headers=HEADERS, json=payload)
-
-            # If API fails, retry
-            if response.status_code != 200:
-                time.sleep(2)
-                continue
-
-            try:
-                return response.json()
-            except:
-                time.sleep(2)
-                continue
-
-        except:
-            time.sleep(2)
-
-    return {"error": "Model unavailable after retries"}
-
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def generate_answer(query):
     results = retrieve_documents(query, k=3)
 
-    # Build context
     context = "\n".join([doc.page_content for doc, score in results])
 
     prompt = f"""
@@ -47,19 +19,17 @@ Question:
 {query}
 """
 
-    response = query_hf({"inputs": prompt})
+    try:
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": prompt}]
+        )
 
-    # Handle response
-    if isinstance(response, list) and "generated_text" in response[0]:
-        answer = response[0]["generated_text"]
+        answer = response.choices[0].message.content
 
-    elif isinstance(response, dict) and "error" in response:
-        answer = "⏳ Loading model... please retry once."
+    except Exception as e:
+        answer = "⚠️ Error generating response. Please try again."
 
-    else:
-        answer = "⚠️ Unexpected response. Try again."
-
-    # Show only top source
     sources = [results[0][0].metadata.get("source", "")] if results else []
 
     return f"{answer}\n\nSources:\n" + "\n".join(sources)
