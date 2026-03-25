@@ -3,7 +3,7 @@ import requests
 import time
 from app.retrieval.retriever import retrieve_documents
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+API_URL = API_URL = "https://router.huggingface.co/hf-inference/models/distilgpt2"
 
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('HUGGINGFACEHUB_API_TOKEN')}"
