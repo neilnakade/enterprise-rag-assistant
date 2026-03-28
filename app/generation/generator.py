@@ -10,9 +10,18 @@ def generate_answer(query):
 
     client = Groq(api_key=api_key)
 
-    # Step 1: Retrieve documents
+    # Step 1: Retrieve documents (with scores)
     results = retrieve_documents(query, k=3)
-    context = "\n".join([doc.page_content for doc, score in results])
+
+    if not results:
+        return "No relevant documents found."
+
+    # Sort by similarity score (best first)
+    results = sorted(results, key=lambda x: x[1], reverse=True)
+
+    # Take ONLY best document
+    best_doc, best_score = results[0]
+    context = best_doc.page_content
 
     # Step 2: Strict RAG prompt
     prompt = f"""
@@ -39,9 +48,16 @@ Question:
     except Exception as e:
         return f"❌ ERROR: {str(e)}"
 
-    # Step 3: Fallback if not found
+    # Step 3: Fallback
     if answer == "NOT_FOUND":
-        fallback_prompt = f"Answer this question clearly:\n{query}"
+        fallback_prompt = f"""
+Answer the question directly and confidently.
+
+Do NOT ask for clarification.
+
+Question:
+{query}
+"""
 
         try:
             fallback_response = client.chat.completions.create(
@@ -56,7 +72,7 @@ Question:
         except Exception as e:
             return f"❌ ERROR: {str(e)}"
 
-    # Step 4: Correct source attribution
-    sources = list(set([doc.metadata.get("source", "") for doc, _ in results]))
+    # Step 4: Show ONLY best source
+    source = best_doc.metadata.get("source", "Unknown")
 
-    return f"{answer}\n\nSources:\n" + "\n".join(sources)
+    return f"{answer}\n\nSource:\n{source}"
